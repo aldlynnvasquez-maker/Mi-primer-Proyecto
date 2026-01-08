@@ -3,12 +3,13 @@ from flask_cors import CORS
 import json
 import os
 
-app = Flask(_name_)
+
+app = Flask(__name__)
 CORS(app)
 
 def cargar_datos():
     # Aseguramos que la ruta funcione en local y en Vercel
-    base_path = os.path.dirname(os.path.abspath(_file_))
+    base_path = os.path.dirname(os.path.abspath(__file__))
     ruta_json = os.path.join(base_path, 'data', 'candidatos.json')
     
     with open(ruta_json, 'r', encoding='utf-8') as f:

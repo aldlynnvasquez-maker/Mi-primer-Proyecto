@@ -3,19 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal de Votación 2026</title>
-    <link rel="stylesheet" href="static/css/style.css">
+    <title>Elecciones Generales Perú 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Animaciones suaves */
+        .fade-in { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        /* Checkbox personalizado estilo boleta */
+        .check-box { width: 24px; height: 24px; border: 2px solid #cbd5e1; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+        .selected .check-box { background-color: #2563eb; border-color: #2563eb; }
+        .selected .check-box::after { content: '✔'; color: white; font-size: 16px; }
+        /* Scroll horizontal para la tabla en móviles */
+        .ballot-scroll { overflow-x: auto; padding-bottom: 20px; }
+    </style>
 </head>
-<body>
-    <div class="container">
-        <header>
-            <h1>🗳️ Elecciones Generales 2026</h1>
-            <p>Seleccione su candidato de preferencia</p>
-        </header>
+<body class="bg-gray-50 font-sans text-slate-800">
 
-        <main id="candidatos-container" class="grid-container">
-            <p class="loading">Cargando datos del servidor...</p>
-        </main>
+    <header class="bg-white shadow-sm py-4 mb-6 sticky top-0 z-50">
+        <div class="container mx-auto px-4 text-center">
+            <div class="inline-block bg-red-600 text-white text-xs font-bold px-2 py-1 rounded mb-1">PE</div>
+            <h1 class="text-2xl font-bold text-slate-900">Elecciones Generales Perú 2026</h1>
+            <p class="text-slate-500 text-sm">Portal Oficial de Votación Electrónica</p>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-4 max-w-7xl">
+
+        <section id="screen-language" class="fade-in py-10">
+            <h2 class="text-center text-gray-500 mb-8">Seleccione su idioma / Simiykita akllay / Arsutama chhijllam</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                <button onclick="setLanguage('es')" class="bg-white p-8 rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-1 border border-gray-100 text-center group">
+                    <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-600 group-hover:text-white transition">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.011 9.75l-4.313 2.25M6.412 9A11.966 11.966 0 0112 5c4.418 0 8.16 3.29 9.798 8.75M6.412 9L3 5"></path></svg>
+                    </div>
+                    <h3 class="font-bold text-xl mb-1">Español</h3>
+                    <p class="text-gray-400 text-sm">Castellano</p>
+                </button>
+                <button onclick="setLanguage('qu')" class="bg-white p-8 rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-1 border border-gray-100 text-center group">
+                    <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-600 group-hover:text-white transition">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+                    </div>
+                    <h3 class="font-bold text-xl mb-1">Quechua</h3>
+                    <p class="text-gray-400 text-sm">Runasimi</p>
+                </button>
+                <button onclick="setLanguage('ay')" class="bg-white p-8 rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-1 border border-gray-100 text-center group">
+                    <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-600 group-hover:text-white transition">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <h3 class="font-bold text-xl mb-1">Aymara</h3>
+                    <p class="text-gray-400 text-sm">Aymara aru</p>
+                </button>
+            </div>
+        </section>
+
+        <section id="screen-ballot" class="hidden fade-in pb-20">
+            <button onclick="goBack('screen-language')" class="mb-4 text-blue-600 hover:underline flex items-center gap-2">
+                &larr; Volver
+            </button>
+            
+            <p class="text-center text-gray-500 mb-6">Seleccione una opción por cada categoría</p>
+
+            <div class="ballot-scroll bg-white rounded-xl shadow-lg border border-gray-200">
+                <div id="ballot-grid" class="min-w-[1000px]">
+                    <div class="p-10 text-center">Cargando candidatos...</div>
+                </div>
+            </div>
+
+            <div class="fixed bottom-0 left-0 w-full bg-white border-t p-4 text-center shadow-lg z-50">
+                <button onclick="goToConfirm()" class="bg-blue-900 text-white px-8 py-3 rounded-lg font-bold hover:bg-blue-800 transition shadow-lg flex items-center justify-center mx-auto gap-2">
+                    Revisar Voto &rarr;
+                </button>
+            </div>
+        </section>
+
+        <section id="screen-confirm" class="hidden fade-in max-w-2xl mx-auto pb-20">
+            <h2 class="text-3xl font-serif text-center font-bold text-slate-900 mb-2">Confirmar Sus Selecciones</h2>
+            <p class="text-center text-gray-500 mb-8">Su selección</p>
+
+            <div id="confirmation-list" class="space-y-4">
+                </div>
+
+            <div class="mt-8 flex gap-4 justify-center">
+                <button onclick="goBack('screen-ballot')" class="px-6 py-3 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50">
+                    <Editar> Volver a Editar
+                </button>
+                <button onclick="emitirVotoOficial()" class="px-8 py-3 bg-blue-900 text-white rounded-lg font-bold hover:bg-blue-800 shadow-lg">
+                    Emitir Voto Oficial
+                </button>
+            </div>
+        </section>
+
+        <section id="screen-success" class="hidden fade-in text-center py-20">
+            <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg class="w-12 h-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+            </div>
+            <h2 class="text-4xl font-serif font-bold text-slate-900 mb-4">¡Gracias por votar!</h2>
+            <p class="text-gray-500 text-lg">Su voto ha sido registrado exitosamente</p>
+            <div class="mt-12 text-gray-400 font-bold">PE <span class="font-normal">ONPE - Perú 2026</span></div>
+            <button onclick="location.reload()" class="mt-8 text-blue-600 underline">Volver al inicio</button>
+        </section>
+
     </div>
 
     <script src="static/js/main.js"></script>

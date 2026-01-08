@@ -1,197 +1,73 @@
 {
-  "presidente": [
+  "meta": {
+    "eleccion": "Generales 2026",
+    "pais": "Peru"
+  },
+  "partidos": [
     {
-      "id": 1,
-      "nombre": "Juan Pérez",
-      "partido": "Fuerza Popular",
-      "propuesta": "Desarrollo económico y empleo",
-      "foto": "url_foto_1.jpg"
+      "id": "p1",
+      "nombre": "Alianza Nacional",
+      "color": "#0ea5e9",
+      "slogan": "Por un Perú unido",
+      "candidatos": {
+        "presidente": "Carlos Mendoza Ríos",
+        "vice": "María Elena Torres",
+        "senadores": "Ana Lucía Vega",
+        "diputados": "Patricia Sánchez",
+        "parlamento_andino": "Fernando Gutiérrez"
+      }
     },
     {
-      "id": 2,
-      "nombre": "María García",
-      "partido": "Perú Libre",
-      "propuesta": "Educación y salud universal",
-      "foto": "url_foto_2.jpg"
+      "id": "p2",
+      "nombre": "Movimiento Progreso",
+      "color": "#fbbf24",
+      "slogan": "Avanzamos juntos",
+      "candidatos": {
+        "presidente": "Laura Castillo Vargas",
+        "vice": "Diego Morales",
+        "senadores": "Andrés Herrera",
+        "diputados": "Raúl Ortega",
+        "parlamento_andino": "Elena Fuentes"
+      }
     },
     {
-      "id": 3,
-      "nombre": "Roberto Silva",
-      "partido": "Alianza para el Progreso",
-      "propuesta": "Seguridad y justicia",
-      "foto": "url_foto_3.jpg"
+      "id": "p3",
+      "nombre": "Fuerza Popular",
+      "color": "#10b981",
+      "slogan": "El pueblo primero",
+      "candidatos": {
+        "presidente": "Ricardo Huamán López",
+        "vice": "Teresa Quispe",
+        "senadores": "Rosa Mamani",
+        "diputados": "Beatriz Condori",
+        "parlamento_andino": "Oscar Valdivia"
+      }
     },
     {
-      "id": 4,
-      "nombre": "Carmen Flores",
-      "partido": "Acción Popular",
-      "propuesta": "Medio ambiente y sostenibilidad",
-      "foto": "url_foto_4.jpg"
+      "id": "p4",
+      "nombre": "Renovación Social",
+      "color": "#e11d48",
+      "slogan": "Cambio con valores",
+      "candidatos": {
+        "presidente": "Adriana Vásquez Luna",
+        "vice": "Ernesto Cruz",
+        "senadores": "Martín Salazar",
+        "diputados": "Francisco Torres",
+        "parlamento_andino": "Victoria Núñez"
+      }
     },
     {
-      "id": 5,
-      "nombre": "Diego Vargas",
-      "partido": "Renovación Popular",
-      "propuesta": "Innovación y tecnología",
-      "foto": "url_foto_5.jpg"
-    }
-  ],
-  "vicepresidente": [
-    {
-      "id": 1,
-      "nombre": "Carlos Ruiz",
-      "partido": "Fuerza Popular",
-      "propuesta": "Apoyo a la industria nacional",
-      "foto": "url_foto_6.jpg"
-    },
-    {
-      "id": 2,
-      "nombre": "Ana López",
-      "partido": "Perú Libre",
-      "propuesta": "Inclusión social",
-      "foto": "url_foto_7.jpg"
-    },
-    {
-      "id": 3,
-      "nombre": "Fernando Mendoza",
-      "partido": "Alianza para el Progreso",
-      "propuesta": "Transparencia gubernamental",
-      "foto": "url_foto_8.jpg"
-    },
-    {
-      "id": 4,
-      "nombre": "Patricia Ramos",
-      "partido": "Acción Popular",
-      "propuesta": "Desarrollo rural",
-      "foto": "url_foto_9.jpg"
-    },
-    {
-      "id": 5,
-      "nombre": "Javier Castro",
-      "partido": "Renovación Popular",
-      "propuesta": "Infraestructura digital",
-      "foto": "url_foto_10.jpg"
-    }
-  ],
-  "diputados": [
-    {
-      "id": 1,
-      "nombre": "Pedro Sánchez",
-      "partido": "Fuerza Popular",
-      "distrito": "Lima",
-      "propuesta": "Infraestructura urbana",
-      "foto": "url_foto_11.jpg"
-    },
-    {
-      "id": 2,
-      "nombre": "Laura Torres",
-      "partido": "Perú Libre",
-      "distrito": "Lima",
-      "propuesta": "Transporte público",
-      "foto": "url_foto_12.jpg"
-    },
-    {
-      "id": 3,
-      "nombre": "Jorge Morales",
-      "partido": "Alianza para el Progreso",
-      "distrito": "Cusco",
-      "propuesta": "Turismo sostenible",
-      "foto": "url_foto_13.jpg"
-    },
-    {
-      "id": 4,
-      "nombre": "Sandra Quispe",
-      "partido": "Acción Popular",
-      "distrito": "Arequipa",
-      "propuesta": "Agricultura tecnificada",
-      "foto": "url_foto_14.jpg"
-    },
-    {
-      "id": 5,
-      "nombre": "Miguel Paredes",
-      "partido": "Renovación Popular",
-      "distrito": "Trujillo",
-      "propuesta": "Educación técnica",
-      "foto": "url_foto_15.jpg"
-    }
-  ],
-  "senadores": [
-    {
-      "id": 1,
-      "nombre": "Roberto Díaz",
-      "partido": "Fuerza Popular",
-      "region": "Norte",
-      "propuesta": "Desarrollo regional",
-      "foto": "url_foto_16.jpg"
-    },
-    {
-      "id": 2,
-      "nombre": "Carmen Vega",
-      "partido": "Perú Libre",
-      "region": "Sur",
-      "propuesta": "Minería responsable",
-      "foto": "url_foto_17.jpg"
-    },
-    {
-      "id": 3,
-      "nombre": "Luis Fernández",
-      "partido": "Alianza para el Progreso",
-      "region": "Centro",
-      "propuesta": "Conectividad digital",
-      "foto": "url_foto_18.jpg"
-    },
-    {
-      "id": 4,
-      "nombre": "Elena Gutiérrez",
-      "partido": "Acción Popular",
-      "region": "Oriente",
-      "propuesta": "Protección amazónica",
-      "foto": "url_foto_19.jpg"
-    },
-    {
-      "id": 5,
-      "nombre": "Raúl Herrera",
-      "partido": "Renovación Popular",
-      "region": "Costa",
-      "propuesta": "Pesca artesanal",
-      "foto": "url_foto_20.jpg"
-    }
-  ],
-  "parlamento_andino": [
-    {
-      "id": 1,
-      "nombre": "Miguel Flores",
-      "partido": "Fuerza Popular",
-      "propuesta": "Integración andina",
-      "foto": "url_foto_21.jpg"
-    },
-    {
-      "id": 2,
-      "nombre": "Isabel Ramos",
-      "partido": "Perú Libre",
-      "propuesta": "Comercio regional",
-      "foto": "url_foto_22.jpg"
-    },
-    {
-      "id": 3,
-      "nombre": "Andrés Castillo",
-      "partido": "Alianza para el Progreso",
-      "propuesta": "Cooperación cultural",
-      "foto": "url_foto_23.jpg"
-    },
-    {
-      "id": 4,
-      "nombre": "Gloria Martínez",
-      "partido": "Acción Popular",
-      "propuesta": "Derechos humanos regionales",
-      "foto": "url_foto_24.jpg"
-    },
-    {
-      "id": 5,
-      "nombre": "Alberto Núñez",
-      "partido": "Renovación Popular",
-      "propuesta": "Cooperación en seguridad",
-      "foto": "url_foto_25.jpg"
+      "id": "p5",
+      "nombre": "Frente Democrático",
+      "color": "#f97316",
+      "slogan": "Democracia para todos",
+      "candidatos": {
+        "presidente": "Juan Pablo Silva",
+        "vice": "Daniela Castro",
+        "senadores": "Valentina Rivas",
+        "diputados": "Alejandro Muñoz",
+        "parlamento_andino": "Lorena Bustamante"
+      }
     }
   ]
 }
