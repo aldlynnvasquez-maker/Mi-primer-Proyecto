@@ -1,223 +1,285 @@
-// Configuración de API
+// --- CONFIGURACIÓN DE LA API ---
+// Detecta si estás en localhost o en un servidor real
 const isLocal = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost";
-const API_BASE = isLocal ? "http://127.0.0.1:5000/api" : "/api";
+// Si tu backend corre en el puerto 5000, ajusta aquí. En Vercel suele ser relativo '/'.
+const API_BASE = isLocal ? "http://127.0.0.1:5000" : ""; 
 
-// Estado de la votación: { categoria: id_partido }
-let votos = {
-    "presidente": null,
-    "vice": null,
-    "senadores": null,
-    "diputados": null,
-    "parlamento_andino": null
+console.log("Modo:", isLocal ? "Local" : "Producción");
+console.log("Conectando a:", API_BASE);
+
+// --- ESTADO GLOBAL ---
+// Aquí guardamos por quién vota el usuario en cada categoría
+let votos = { 
+    "presidente": null, 
+    "vicepresidente": null,
+    "senador": null,
+    "diputado": null,
+    "parlamentario": null
 };
 
-// Datos globales descargados
 let partidosData = [];
+let dniSesion = null;
+let nombreSesion = "";
 
-// Categorías oficiales (Las filas de la tabla)
+// Definimos las categorías para pintar la tabla dinámicamente
 const categorias = [
-    { key: "presidente", label: "Presidente de la República" },
-    { key: "vice", label: "Vicepresidentes" },
-    { key: "senadores", label: "Senadores" },
-    { key: "diputados", label: "Diputados" },
-    { key: "parlamento_andino", label: "Parlamento Andino" }
+    { key: "presidente", label: "Presidente de la República", jsonKey: "presidente" },
+    { key: "vicepresidente", label: "Vicepresidentes", jsonKey: "vice" },
+    { key: "senador", label: "Senadores", jsonKey: "senadores" },
+    { key: "diputado", label: "Diputados", jsonKey: "diputados" },
+    { key: "parlamentario", label: "Parlamento Andino", jsonKey: "parlamento_andino" }
 ];
 
+// --- 1. LÓGICA DE VALIDACIÓN (LOGIN) ---
+async function validarDNI() {
+    const input = document.getElementById('input-dni');
+    const dni = input.value.trim();
+
+    // Validación visual básica
+    if (dni.length !== 8 || isNaN(dni)) {
+        mostrarErrorDNI("El DNI debe tener 8 dígitos numéricos.");
+        return;
+    }
+
+    try {
+        console.log("Validando DNI:", dni);
+        
+        // Tu endpoint GET espera el DNI como parámetro en la URL
+        const response = await fetch(`${API_BASE}/api/usuario?dni=${dni}`, {
+            method: 'GET',
+            headers: { 
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            // ÉXITO: Usuario encontrado y no ha votado
+            dniSesion = parseInt(dni); 
+            nombreSesion = data.nombre || "Ciudadano"; 
+            
+            console.log("Bienvenido:", nombreSesion);
+            alert(`Bienvenido, ${nombreSesion}`);
+            
+            // Pasar a la pantalla de votación (saltamos idioma por brevedad)
+            showScreen('screen-ballot'); 
+        } else {
+            // ERROR: Usuario no existe o ya votó (404)
+            mostrarErrorDNI(data.Error || "Error desconocido");
+        }
+    } catch (error) {
+        console.error("Error de conexión:", error);
+        mostrarErrorDNI("No se pudo conectar con el servidor.");
+    }
+}
+
+function mostrarErrorDNI(msg) {
+    const errorText = document.getElementById('dni-error-text');
+    const errorCont = document.getElementById('dni-error');
+    
+    if(errorText) errorText.innerText = msg;
+    if(errorCont) errorCont.classList.remove('hidden');
+}
+
+// --- 2. LÓGICA DE CARGA DE CANDIDATOS ---
 document.addEventListener('DOMContentLoaded', async () => {
     try {
-        const response = await fetch(`${API_BASE}/candidatos`);
+        const response = await fetch(`${API_BASE}/api/candidatos`);
+        if (!response.ok) throw new Error("Error obteniendo candidatos");
+        
         const data = await response.json();
         partidosData = data.partidos;
-        renderBallotGrid(); // Dibujar la tabla
-    } catch (error) {
-        console.error("Error API:", error);
-        document.getElementById('ballot-grid').innerHTML = "<p class='text-red-500 p-4'>Error conectando al sistema electoral.</p>";
+        
+        renderBallotGrid();
+    } catch (e) { 
+        console.error("Error cargando candidatos", e);
+        const grid = document.getElementById('ballot-grid');
+        if(grid) grid.innerHTML = "<p style='color:red; text-align:center'>Error de conexión cargando datos.</p>";
     }
 });
 
-// --- FUNCIONES DE NAVEGACIÓN ---
-function showScreen(id) {
-    ['screen-language', 'screen-ballot', 'screen-confirm', 'screen-success'].forEach(s => {
-        document.getElementById(s).classList.add('hidden');
-    });
-    document.getElementById(id).classList.remove('hidden');
-    window.scrollTo(0,0);
-}
-
-function setLanguage(lang) {
-    showScreen('screen-ballot');
-}
-
-function goBack(targetScreen) {
-    showScreen(targetScreen);
-}
-
-function goToConfirm() {
-    // Validar si votó en todas (Opcional, por ahora dejamos pasar vacíos como blanco)
-    renderConfirmation();
-    showScreen('screen-confirm');
-}
-
-// --- LÓGICA CORE: DIBUJAR LA GRILLA ---
 function renderBallotGrid() {
     const grid = document.getElementById('ballot-grid');
-    
-    // 1. HEADER (Los Partidos)
+    if(!grid) return;
+
+    // Crear el encabezado de la tabla (Partidos)
     let html = `<div class="grid" style="grid-template-columns: 200px repeat(${partidosData.length}, 1fr);">`;
     
-    // Celda vacía esquina superior izq
+    // Esquina vacía
     html += `<div class="bg-gray-100 p-4 border-b border-r flex items-center justify-center font-bold text-gray-400">CATEGORÍA</div>`;
     
-    // Columnas de Partidos
-    partidosData.forEach((p, index) => {
-        html += `
-            <div class="p-4 text-white text-center border-b border-r relative" style="background-color: ${p.color}">
-                <div class="text-3xl font-bold opacity-50 absolute top-2 right-4">${index + 1}</div>
-                <div class="h-10 w-10 bg-white/20 rounded-full mx-auto mb-2 flex items-center justify-center">
-                    <span class="text-xl">🗳️</span>
-                </div>
-                <h3 class="font-bold text-sm leading-tight">${p.nombre}</h3>
-                <p class="text-xs opacity-80 mt-1">Slogan del partido</p>
-            </div>
-        `;
+    // Columnas de partidos
+    partidosData.forEach((p, idx) => {
+        html += `<div class="p-4 text-white text-center border-b border-r relative" style="background-color: ${p.color}">
+                    <div class="text-3xl font-bold opacity-50 absolute top-2 right-4">${idx + 1}</div>
+                    <h3 class="font-bold text-sm mt-8">${p.nombre}</h3>
+                 </div>`;
     });
 
-    // 2. FILAS (Las Categorías)
+    // Filas de Categorías
     categorias.forEach(cat => {
-        // Columna Izquierda: Nombre de Categoría
-        html += `<div class="bg-gray-50 p-6 border-b border-r flex items-center text-gray-600 font-semibold border-l">
-                    ${cat.label}
-                 </div>`;
-
+        // Columna izquierda (Nombre categoría)
+        html += `<div class="bg-gray-50 p-6 border-b border-r flex items-center font-semibold text-gray-700">${cat.label}</div>`;
+        
         // Celdas de votación
         partidosData.forEach(p => {
-            // Buscamos el candidato de este partido para esta categoría
-            let candidatoNombre = "";
-            
-            if (p.candidatos && p.candidatos[cat.key]) {
-                if (typeof p.candidatos[cat.key] === 'object') {
-                    // Si es objeto (ej: presidente y vice)
-                    candidatoNombre = p.candidatos[cat.key].presidente || JSON.stringify(p.candidatos[cat.key]);
-                } else {
-                    // Si es texto plano
-                    candidatoNombre = p.candidatos[cat.key];
-                }
-            } else {
-                candidatoNombre = "Lista cerrada";
+            // Lógica para sacar el nombre del candidato según tu JSON
+            let candidatoNombre = "Candidato";
+            if (p.candidatos && p.candidatos[cat.jsonKey]) {
+                // Usar la clave correcta del JSON
+                const val = p.candidatos[cat.jsonKey];
+                candidatoNombre = (typeof val === 'object') ? val.presidente : val;
             }
 
-            const isSelected = votos[cat.key] === p.id ? 'selected' : '';
-            const bgClass = isSelected ? 'bg-blue-50' : 'bg-white';
+            // Verificar si está seleccionado
+            const isSelected = votos[cat.key] === p.id ? 'selected bg-blue-50' : 'bg-white';
             
-            html += `
-                <div id="cell-${cat.key}-${p.id}" 
-                     class="p-4 border-b border-r cursor-pointer transition hover:bg-gray-50 ${bgClass} ${isSelected}"
-                     onclick="selectVote('${cat.key}', '${p.id}')">
-                     
-                     <div class="flex justify-end mb-2">
-                        <div class="check-box bg-white"></div>
-                     </div>
-                     
-                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
-                             <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(candidatoNombre)}&background=random" alt="candidato">
+            // HTML de la celda
+            html += `<div id="cell-${cat.key}-${p.id}" 
+                          class="p-4 border-b border-r cursor-pointer hover:bg-gray-50 transition ${isSelected}" 
+                          onclick="selectVote('${cat.key}', '${p.id}')">
+                        
+                        <div class="flex justify-end mb-2">
+                            <div class="check-box bg-white w-6 h-6 border rounded"></div>
                         </div>
-                        <div class="text-xs text-gray-700 leading-tight">
-                            <span class="font-bold block text-gray-900 mb-0.5">1. ${candidatoNombre}</span>
-                            <span>Lista Oficial</span>
+                        
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-gray-200 overflow-hidden shrink-0">
+                                <img src="https://ui-avatars.com/api/?name=${candidatoNombre}&background=random" alt="img">
+                            </div>
+                            <div class="text-xs">
+                                <span class="font-bold block">${candidatoNombre}</span>
+                            </div>
                         </div>
-                     </div>
-                </div>
-            `;
+                     </div>`;
         });
     });
 
-    html += `</div>`; // Cierre del grid container
+    html += `</div>`; // Cerrar grid
     grid.innerHTML = html;
 }
 
-// --- LÓGICA DE SELECCIÓN ---
-function selectVote(categoria, partidoId) {
-    // 1. Actualizar estado
-    votos[categoria] = partidoId;
+function selectVote(cat, partidoId) {
+    // 1. Guardar voto en el estado global
+    votos[cat] = partidoId;
+    
+    console.log(`Voto registrado en ${cat} para el partido ${partidoId}`);
 
-    // 2. Actualizar visualmente (DOM)
-    // Limpiar selección previa en esta fila
+    // 2. Actualizar visualmente (Quitar selección anterior, poner nueva)
+    // Limpiar toda la fila visualmente
     partidosData.forEach(p => {
-        const cell = document.getElementById(`cell-${categoria}-${p.id}`);
-        if(cell) {
-            cell.classList.remove('selected', 'bg-blue-50');
-            cell.classList.add('bg-white');
+        const cell = document.getElementById(`cell-${cat}-${p.id}`);
+        if(cell) { 
+            cell.classList.remove('selected', 'bg-blue-50'); 
+            cell.classList.add('bg-white'); 
         }
     });
 
-    // Marcar nueva selección
-    const activeCell = document.getElementById(`cell-${categoria}-${partidoId}`);
-    if(activeCell) {
-        activeCell.classList.add('selected', 'bg-blue-50');
-        activeCell.classList.remove('bg-white');
+    // Marcar la celda seleccionada
+    const activeCell = document.getElementById(`cell-${cat}-${partidoId}`);
+    if(activeCell) { 
+        activeCell.classList.add('selected', 'bg-blue-50'); 
+        activeCell.classList.remove('bg-white'); 
     }
 }
 
-// --- RENDERIZAR CONFIRMACIÓN ---
-function renderConfirmation() {
-    const list = document.getElementById('confirmation-list');
-    list.innerHTML = '';
+// --- 3. CONFIRMACIÓN Y ENVÍO ---
 
-    categorias.forEach(cat => {
-        const partidoId = votos[cat.key];
-        let contenido = "";
-
-        if (!partidoId) {
-            contenido = `<div class="text-red-500 font-bold">Voto en Blanco</div>`;
-        } else {
-            const partido = partidosData.find(p => p.id === partidoId);
-            if (partido) {
-                const candidato = (typeof partido.candidatos[cat.key] === 'object') 
-                    ? partido.candidatos[cat.key].presidente 
-                    : partido.candidatos[cat.key];
-
-                contenido = `
-                    <div class="flex items-center gap-4">
-                         <div class="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold" style="background-color: ${partido.color}">
-                            ${partido.nombre.substring(0,2).toUpperCase()}
-                         </div>
-                         <div>
-                            <div class="font-bold text-slate-900">${partido.nombre}</div>
-                            <div class="text-sm text-gray-500">${candidato}</div>
-                         </div>
-                    </div>
-                `;
-            }
+// Función para ir a la pantalla de confirmación (Paso intermedio)
+function goToConfirm() {
+    // Validar que haya votado en todo (como pide tu python)
+    for (let key in votos) {
+        if (votos[key] === null) {
+            alert("Debe seleccionar un candidato en todas las categorías.");
+            return;
         }
+    }
+    
+    // Renderizar lista de confirmación
+    const list = document.getElementById('confirmation-list');
+    if(list) {
+        list.innerHTML = '';
+        categorias.forEach(cat => {
+            const partidoId = votos[cat.key];
+            const partido = partidosData.find(p => p.id === partidoId);
+            
+            list.innerHTML += `
+                <div class="bg-white p-4 rounded border mb-2 flex justify-between items-center">
+                    <span class="font-bold text-gray-500 text-sm uppercase">${cat.label}</span>
+                    <span class="font-bold text-blue-900">${partido ? partido.nombre : 'Error'}</span>
+                </div>`;
+        });
+    }
 
-        list.innerHTML += `
-            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex items-center justify-between">
-                <div>
-                    <div class="text-xs font-bold text-gray-400 uppercase mb-1">${cat.label}</div>
-                    ${contenido}
-                </div>
-                <div class="h-8 w-8 bg-blue-900 text-white rounded-full flex items-center justify-center font-bold text-sm">1</div>
-            </div>
-        `;
-    });
+    showScreen('screen-confirm');
 }
 
-// --- ENVÍO AL BACKEND ---
 async function emitirVotoOficial() {
+    if (!dniSesion) { 
+        alert("Sesión expirada. Ingrese DNI nuevamente."); 
+        showScreen('screen-login'); 
+        return; 
+    }
+    
+    // Generamos un ID de voto simple basado en la fecha (timestamp) 
+    const idVotoGenerado = Date.now(); 
+
+    // Construimos el objeto EXACTAMENTE como lo pide tu index.py en votar()
+    const payload = {
+        "id_voto": idVotoGenerado,
+        "dni": dniSesion,
+        "presidente": votos.presidente,
+        "vicepresidente": votos.vicepresidente,
+        "diputado": votos.diputado,
+        "parlamentario": votos.parlamentario,
+        "senador": votos.senador
+    };
+
+    console.log("Enviando voto al backend:", JSON.stringify(payload));
+
     try {
-        const response = await fetch(`${API_BASE}/votar`, {
+        const res = await fetch(`${API_BASE}/api/votar`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(votos)
+            headers: { 
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
         });
 
-        if (response.ok) {
+        const result = await res.json();
+
+        if (res.ok) {
+            console.log("Éxito:", result.message);
             showScreen('screen-success');
         } else {
-            alert("Error al guardar voto");
+            console.error("Error del servidor:", result);
+            alert("Error: " + (result.error || "No se pudo registrar el voto"));
         }
-    } catch (e) {
-        alert("Error de conexión");
+    } catch (e) { 
+        console.error("Error de red:", e);
+        alert("Error de conexión al enviar voto."); 
     }
+}
+
+// --- NAVEGACIÓN ENTRE PANTALLAS ---
+function showScreen(id) {
+    // Ocultar todas
+    const screens = ['screen-login', 'screen-language', 'screen-ballot', 'screen-confirm', 'screen-success'];
+    screens.forEach(s => {
+        const el = document.getElementById(s);
+        if(el) el.classList.add('hidden');
+    });
+    
+    // Mostrar la deseada
+    const target = document.getElementById(id);
+    if(target) target.classList.remove('hidden');
+    
+    window.scrollTo(0,0);
+}
+
+// Función auxiliar para idioma (si la usas)
+function setLanguage(l) { 
+    // Por ahora redirige directo a la boleta
+    showScreen('screen-ballot'); 
 }
